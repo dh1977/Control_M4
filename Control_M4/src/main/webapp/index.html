@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="ISO-8859-1">
+		
+		
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+
+		<!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+		<script src="https://code.jquery.com/jquery-3.5.1.min.js" ></script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" ></script>
+		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+		
+		<title>Cargos</title>
+	</head>
+	
+	<body>
+		<script>
+			function llamar_servlet(){
+				let num = $('#txtNum').val();
+				
+				$.ajax({
+					// El retorno puede ser: (1) datos o (2) un mensaje que comienza 
+					// por '¡' para distinguirlo de los datos.
+					// Si hay un error, el servlet lanza una Exception que retorna
+					// en el 'response' con un '!' inicial.
+					url:'Acciones',
+					type: 'GET',
+					data : { accion: $('#btnOk').text().toLowerCase()
+							 , title_no: (num=='' || isNaN(num))?'0':num
+							 , title: $('#txtNom').val()
+							 },
+					success: function (response) {
+						if ( response.slice(0,1) == '!') {
+							// mensaje de error retornado
+							alert( response.slice(1)  );
+						}
+						else 	// ok
+							if ( response.slice(0,1) == '¡') {
+								// mensaje-aviso retornado
+								alert( response.slice(1) );
+								limpiarPantalla();
+							}
+							else {
+								// datos retornados
+								let datos = response.split(";");
+								$('#txtNum').val(datos[0]);
+								$('#txtNom').val(datos[1]);
+							}
+					},
+					error: function (jqXHR, textStatus, errorThrown) {
+						let err = 'No se pudo realizar la acción:' 
+									+ '\nStatus: ' + textStatus 
+									+ '\nError: ' + errorThrown;
+
+						alert( err );
+					}
+				});
+			}
+			
+			function validar_datos( accion ) {
+				let err = '';
+			
+				if ( accion.toLowerCase() == 'crear' || accion.toLowerCase() == 'modificar' ) {
+					if ( $('#txtNom').val() == '' )
+						err = 'Debe ingresar el nombre.'
+				}
+				return err;
+			}
+			
+		
+			function limpiarPantalla() {
+				// Escondo la zona de edición
+				$('#inputs').hide();
+				
+				// Limpio textboxes
+				$('#txtNum').val('');
+				$('#txtNom').val('');
+				
+				// Reahabito el menú
+				$('#acciones > .btn').prop( "disabled", false );
+			}
+			
+			
+			$(document).ready(function() {
+				// Clic en los botones de 'acción' (superiores)
+				$('#acciones > .btn').click(function() {
+					// Inhabilito el menú (botones superiores)
+					$('#acciones > .btn').prop( 'disabled', true );
+					
+					// Título de la zona de edición
+					$('#lblAccion').text($(this).text() + ' cargo');
+					
+					// Traspaso el color y el texto del botón del menú al botón 'btnOk'
+					$('#btnOk').css('background-color', $(this).css('background-color'));
+					$('#btnOk').text( $(this).text() );
+
+					// Habilito/deshab. textboxes 'número' y 'nombre' dependiendo de la acción
+					let btnPress = $(this).text().toLowerCase();
+					$('#txtNum').prop( 'disabled', btnPress == 'crear');
+					$('#txtNom').prop( 'disabled', btnPress == 'eliminar' || btnPress == 'consultar');
+					
+					// Muestro la zona de edición
+					$("#inputs").show();
+					$("#txtNum").focus();
+				});
+				
+				$('#btnCancelar').click(function() {
+					limpiarPantalla();
+				});
+				
+				$(document).keydown(function(event) {
+					if ( event.which == 27 )
+						// 'Esc' presionado <=> 'Cancelar'
+						limpiarPantalla();
+				});
+				
+				// Llamado al servlet
+				$('#btnOk').click(function() {
+					let msg = validar_datos( $(this).text() );
+					
+					if ( msg == '') 
+						llamar_servlet();
+					else 
+						alert(msg);
+				});
+			});
+		</script>
+	
+		<div class="container-fluid mx-2 my-2 px-1 py-1" 
+				style="width: 50%; border: 2px solid blue; border-radius: 5px">
+			<p style="background-color: lightgrey;font-weight:bold">
+				Cargos
+			</p>
+
+			<div class="btn-group-sm pb-2" id="acciones">
+				<!-- Opciones  -->
+				<button type="button" class="btn btn-primary mx-1">Crear</button>
+				<button type="button" class="btn btn-warning mx-1">Modificar</button>
+				<button type="button" class="btn btn-danger mx-1">Eliminar</button>
+				<button type="button" class="btn btn-info mx-1" >Consultar</button>
+			</div>
+	
+			<div id="inputs" style="display:none">
+				<hr style="border-color:blue"> 
+				<p id="lblAccion" style="font-weight:bold; margin-left:10px">accion</p>
+				
+				<label for="txtNum" class="label ml-2">Nro. cargo:</label><br>
+				<input class="input-sm ml-2" type="text" id="txtNum" style="width:15%;"><br>
+
+				<label for="txtNom" class="label ml-2 mt-3">Nombre:</label><br>
+				<input class="input-sm ml-2" type="text" id="txtNom" maxlength="50" style="width:80%"><br>
+				
+				<div class="btn-group-sm pt-3">
+					<button type="button" class="btn btn-success mx-3" id="btnOk">
+						Confirmar
+					</button>				
+					<button type="button" class="btn mx-3" id="btnCancelar" title="Esc" 
+							style="color:white;background-color:black">
+						Cancelar
+					</button>			
+				</div>
+			</div>
+		</div>
+
+	</body>
+</html>
