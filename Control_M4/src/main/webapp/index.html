@@ -17,6 +17,9 @@
 	
 	<body>
 		<script>
+			// Global: guarda text() del botón presionado (en minúsculas)
+			var accion_escogida = '';
+			
 			function llamar_servlet(){
 				let num = $('#txtNum').val();
 				
@@ -27,7 +30,7 @@
 					// en el 'response' con un '!' inicial.
 					url:'Acciones',
 					type: 'GET',
-					data : { accion: $('#btnOk').text().toLowerCase()
+					data : { accion: accion_escogida
 							 , title_no: (num=='' || isNaN(num))?'0':num
 							 , title: $('#txtNom').val()
 							 },
@@ -62,7 +65,7 @@
 			function validar_datos( accion ) {
 				let err = '';
 			
-				if ( accion.toLowerCase() == 'crear' || accion.toLowerCase() == 'modificar' ) {
+				if ( accion_escogida == 'crear' || accion_escogida == 'modificar' ) {
 					if ( $('#txtNom').val() == '' )
 						err = 'Debe ingresar el nombre.'
 				}
@@ -97,9 +100,9 @@
 					$('#btnOk').text( $(this).text() );
 
 					// Habilito/deshab. textboxes 'número' y 'nombre' dependiendo de la acción
-					let btnPress = $(this).text().toLowerCase();
-					$('#txtNum').prop( 'disabled', btnPress == 'crear');
-					$('#txtNom').prop( 'disabled', btnPress == 'eliminar' || btnPress == 'consultar');
+					accion_escogida = $(this).text().toLowerCase();
+					$('#txtNum').prop( 'disabled', accion_escogida == 'crear');
+					$('#txtNom').prop( 'disabled', accion_escogida == 'eliminar' || accion_escogida == 'consultar');
 					
 					// Muestro la zona de edición
 					$("#inputs").show();
